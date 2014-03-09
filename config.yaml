@@ -6,6 +6,7 @@ Config:
   LOGMODE: INFO
 #  LOGFILE: ./gpio2mqtt.log
   LOGFILE: /var/log/gpio2mqtt.log
+  UPDATE: 0.01
   
  Broker:
   MQTT_HOST: localhost

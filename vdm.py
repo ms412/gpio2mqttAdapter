@@ -10,7 +10,7 @@ from vpm import TimerOut
 from vpm import TimerIn
 from vpm import S0
 from hwIF_23017 import hwIF_23017
-#from hwIF_raspberry import hwIF_raspberry
+from hwIF_raspberry import hwIF_raspberry
 
 from config import config
 from logAdapter import loghandle
@@ -37,8 +37,7 @@ class vdm(threading.Thread):
         self._DEVICE_TYPE = configuration.get('TYPE')
         self._DEVICE_NAME = configuration.get('NAME')
         self._MQTT_CHANNEL = configuration.get('MQTT_CHANNEL')
-#        self._RASPBERRY_REV = int(configuself._toPortQu = Queue.Queue()ration.get('RASPBERRY_REV'))
- #       self._I2C_ADDRESS = int(configuration.get('I2C_ADDRESS'),16)
+        self._THREAD_UPDATE = float(configuration.get('UPDATE',0.1))
         
         self._fromPortQueue = fromPortQueue
         
@@ -93,7 +92,7 @@ class vdm(threading.Thread):
     #        time.sleep(3)
      #       data = self.Get('ALL')
       #      print "ALL:",len(data), data
-            time.sleep(0.01)
+            time.sleep(self._THREAD_UPDATE)
             
         #    while self._toPortQu.qsize:
                 
@@ -137,7 +136,7 @@ class vdm(threading.Thread):
             
             for configItem in self._config.getSectionByRegex('Port[0-9]'): 
                 self._loghandle.debug('VirtualPortManager:Setup Port Number %s for Device    OFF_VALUE: OFF %s with Configuration',len(self._portInstanceList), self._DEVICE_TYPE, configItem) 
-                self._portInstanceList.append(vpm(self._hwHandle, self._DEVICE_TYPE, configItem))
+                self._portInstanceList.append(S0(self._hwHandle, self._DEVICE_TYPE, configItem))
                 
         else:
             self._loghandle.crittical('VDM::Setup: Device not Supported')

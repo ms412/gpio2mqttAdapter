@@ -6,7 +6,7 @@ import Queue
 import threading
 
 from config import config
-from wrapper_log import loghandle
+from logAdapter import loghandle
 
 try:
     import paho.mqtt.client as mqtt
