@@ -640,7 +640,7 @@ class S0(object):
                 self._NAME = self._config.get('NAME')
                 self._HWID = int(self._config.get('HWID'))
                 self._MODE = self._config.get('MODE','S0')
-                self._E_FACTOR = float(self._config.get('E-FACTOR','2000'))
+                self._FACTOR = float(self._config.get('FACTOR','2000'))
 
             except:
                 self._loghandle.critical('BinaryOut::Init Mandatory Parameter missing for Port %s',self._NAME)
@@ -667,7 +667,8 @@ class S0(object):
             self._ResultAvailable = False
             
             self._watt = 0.0
-            self._engery = 0
+            self._engerySum = 0.0
+            self._energyDelta = 0.0
             self._pulsCount = 0
 
             '''
@@ -698,14 +699,11 @@ class S0(object):
         name = self._NAME
         state = True
         
-
-
-
-
         self._loghandle.info('S0::Get Port %s Status %s',self._NAME, deltaT1) 
         
         msg=json.dumps({
-                "ENERGY": self.Energy(),
+                "ENERGY": self._energySum,
+                "ENERGYDELTA": self._energyDelta,
                 "POWER": self._watt,
                 "Result": state
         })
@@ -720,7 +718,7 @@ class S0(object):
         details returned by Get method
         '''
         update = False
-        factor = 2000
+   #     factor = 2000
         
         if self._SavePinState > 1 and self._hwHandle.ReadPin(self._HWID) == 0:
      
@@ -761,25 +759,20 @@ class S0(object):
         return update           
     
     def Power(self):
-        self._watt = 1/self._E_FACTOR * 3600 / self._T1 * 1000
+        self._watt = 1/self._FACTOR * 3600 / self._T1 * 1000
         self._pulsCount = self._pulsCount +1
         print "Watt", self._watt
 
         return self._watt
     
     def Energy(self):
-        self._energy = float(self._pulsCount / self._E_FACTOR)
+        energyCurr = float(self._pulsCount / self._E_FACTOR)
+        self._energyDelta = energyCurr - self._energySum
+        self._energySum = energyCurr
  #       print self._pulsCount / self._E_FACTOR
         print "Energy %f" % self._energy, "Pulscounte", self._pulsCount
         
-        return self._energy
-    
-        
-
-    
-        
-    
-      
+        return self._energySum
     
     def GetDirection(self):
         return self._DIRECTION

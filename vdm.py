@@ -196,25 +196,24 @@ class vdm(threading.Thread):
         for instance in self._portInstanceList:     
             if 'BINARY-IN' in instance.GetMode():
                 if instance.Update() == True or 'ALL' in mode:
-        #        if instance.Update() == True:
-             #       print instance.Update()
                     resultList.append(self.Get_Port(instance))
+                    
             elif 'BINARY-OUT' in instance.GetMode():
                 if'ALL' in mode:
                     resultList.append(self.Get_Port(instance))
+                    
             elif 'TIMER-OUT'in instance.GetMode():
-               # print "Timer Out", instance.Update()
                 if instance.Update() == True or 'ALL' in mode:
-              #      print "TIMER-OUT"
                     resultList.append(self.Get_Port(instance))
+                    
             elif 'TIMER-IN' in instance.GetMode():
                 if instance.Update() == True or 'ALL' in mode:
-                #    print "TIMER-IN"
                     resultList.append(self.Get_Port(instance))
+                    
             elif 'S0' in instance.GetMode():
                 if instance.Update() == True or 'ALL' in mode:
-                #    print "TIMER-IN"
                     resultList.append(self.Get_Port(instance))
+                    
             else:
                 print 'unknown'
                 
@@ -238,151 +237,6 @@ class vdm(threading.Thread):
             self._loghandle.debug('VDM::GetBinaryIn data invalid Return State: %s', portDict.get('STATE')) 
  #       print "Result Dict:",resultDict
         return resultDict
-    
-    def Get_BinaryOut(self, instance):
-        
-        resultDict ={}
-        
-        portDict = instance.Get()
-
-        if portDict.get('STATE') == True:
-            resultDict.update({'DEVICE_NAME':self._DEVICE_NAME})
-            resultDict.update({'PORT_NAME':portDict.get('NAME')})
-            resultDict.update({'PORT_VALUE':portDict.get('VALUE')})
-        else:
-            self._loghandle.debug('VDM::GetBinaryOut data invalid Return State: %s', portDict.get('STATE')) 
-
-        return resultDict
-    
-    def Get_TimerOut(self,instance):
-        
-        resultDict ={}
-        
-        portDict = instance.Get()
-
-        if portDict.get('STATE') == True:
-            resultDict.update({'DEVICE_NAME':self._DEVICE_NAME})
-            resultDict.update({'PORT_NAME':portDict.get('NAME')})
-            resultDict.update({'PORT_VALUE':portDict.get('VALUE')})
-        else:
-            self._loghandle.debug('VDM::GetTimerOut data invalid Return State: %s', portDict.get('STATE')) 
-
-        return resultDict
-    
-    def Get_TimerIn(self,instance):
-        
-        resultDict ={}
-        
-        portDict = instance.Get()
-
-        if portDict.get('STATE') == True:
-            resultDict.update({'DEVICE_NAME':self._DEVICE_NAME})
-            resultDict.update({'PORT_NAME':portDict.get('NAME')})
-            resultDict.update({'PORT_VALUE':portDict.get('DELTA_T1')})
-            resultDict.update({'DELTA_T1':portDict.get('DELTA_T1')})
-        else:
-            self._loghandle.debug('VDM::GetTimerIn; data invalid Return State: %s', portDict.get('STATE')) 
-
-        return resultDict            
-
-    def UpdateOld(self, mode = 'UPDATE'):
-        
-        resultList =[]
-        
-        for instance in self._portInstanceList:
-            if 'BINARY-IN' in instance.GetMode():
-#            if 'IN' in instance.GetDirection():
-                value = instance.Update()
-                if value.get('Update') == True:
-                    resultList.append(self.EnrichResult(value.get('State'), instance))
-                    
-            elif 'TIMER-OUT' in instance.GetMode():
-                instance.Update()
-                
-            elif 'TIMER-IN' in instance.GetMode():
-                value = instance.Update()
-                if value.get('Update') == True:
-                    resultList.append(self.EnrichResult(value.get('State'), instance))
-     #   print 'UPDATE',resultList    
-        return resultList
-    
-
-            
-        
-    def EnrichResult(self, value, instance):
-        
-        resultDict = {}
-        
-        resultDict.update({'DEVICE_NAME':self._DEVICE_NAME})
-        resultDict.update({'PORT_NAME':instance.GetName()})
-        resultDict.update({'PORT_STATE':value})
-        
-        return resultDict
-    
-    def RequestSync(self):
-        self._requestSync = True
-        
-    def UpdateGPIO(self, mode):
-        resultList = []
-        
-        for portInstance in self._portInstanceList:
-            if 'UPDATE' in mode:
-                if 'IN' in portInstance.GetDirection():
-                    resultDict = portInstance.UpdateGPIO()
-                    if resultDict.get('Update') == True:   
-                        resultDict.update({'DeviceChannel':self._MQTT_CHANNEL})
-                        resultDict.update({'PortName':portInstance.GetName()})
-                        resultDict.update({'PortState':resultDict.get('State',None)})
-                        resultList.append(resultDict)
-                        
-            elif 'ALL' in mode:
-
-                resultDic = portInstance.Get()
-            
-                resultDic.update({'DeviceChannel':self._MQTT_CHANNEL})
-                resultDic.update({'PortName':portInstance.GetName()})
-                resultDic.update({'PortState':resultDic.get('State',None)})
-
-                resultList.append(resultDic)
-            
-            else:
-                self._loghandle.error('VirtualDeviceDrv23017::Update unknown Mode: %s', mode)  
-                
-        if len(resultList) > 1:
-            self._loghandle.info('VirtualDeviceDrv23017::Update Result List %s', resultList)  
-            
-        return resultList
-    
-    def UpdateFlash(self):
-        
-        for portInstance in self._portInstanceList:
-            if 'FLASH' in portInstance.GetMode():
-                portInstance.UpdateFlash()   
-                
-    def UpdatePushButton(self):
-        
-        for portInstance in self._portInstanceList:
-            if 'PUSH_BUTTON' in portInstance.GetMode():
-                portInstance.UpdatePushButton()   
-                
-    def UpdateDebounce(self):    
-        resultList = [] 
-        
-        for portInstance in self._portInstanceList:
-            if 'DEBOUNCE' in portInstance.GetMode():
-                resultDict = portInstance.UpdateDebounce()
-                if resultDict.get('Update') == True: 
-                    resultDict.update({'DeviceChannel':self._MQTT_CHANNEL})
-                    resultDict.update({'PortName':portInstance.GetName()})
-                    resultDict.update({'PortState':resultDict.get('State',None)})
-                    
-                    resultList.append(resultDict)
-                    
-        if len(resultList) > 1:
-            self._loghandle.info('VirtualDeviceDrv23017::UpdateDebounce Result List %s', resultList)
-  
-        return resultList
- #       return resultList
           
      
     def GetPortInstance(self, portName):    
