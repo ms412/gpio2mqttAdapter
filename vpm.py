@@ -705,7 +705,7 @@ class S0(object):
                 "ENERGY": self._energySum,
                 "ENERGYDELTA": self._energyDelta,
                 "POWER": self._watt,
-                "Result": state
+                "RESULT": state
         })
         
         return {'VALUE':msg, 'NAME':name, 'STATE':state} 

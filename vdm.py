@@ -237,7 +237,6 @@ class vdm(threading.Thread):
             self._loghandle.debug('VDM::GetBinaryIn data invalid Return State: %s', portDict.get('STATE')) 
  #       print "Result Dict:",resultDict
         return resultDict
-          
      
     def GetPortInstance(self, portName):    
 
