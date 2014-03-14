@@ -7,7 +7,7 @@ Config:
 #  LOGFILE: ./gpio2mqtt.log
   LOGFILE: /var/log/gpio2mqtt.log
   UPDATE: 0.01
-  
+
  Broker:
   MQTT_HOST: localhost
   MQTT_PORT: 1883
