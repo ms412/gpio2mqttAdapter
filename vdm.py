@@ -9,6 +9,7 @@ from vpm import BinaryIn
 from vpm import TimerOut
 from vpm import TimerIn
 from vpm import S0
+from vpm import PWM
 from hwIF_23017 import hwIF_23017
 from hwIF_raspberry import hwIF_raspberry
 
@@ -127,16 +128,42 @@ class vdm(threading.Thread):
                     self._portInstanceList.append(TimerIn(self._hwHandle, self._DEVICE_TYPE, configItem))
                 elif 'S0' in configItem.get('MODE'):
                     self._portInstanceList.append(S0(self._hwHandle, self._DEVICE_TYPE, configItem))
+                elif 'PWM' in configItem.get('MODE'):
+                    self._portInstanceList.append(PWM(self._hwHandle, self._DEVICE_TYPE, configItem))
                 else:
                     self._loghandle.critical('VirtualPortManager:Setup Port Number %s for Device %s Mode %s not supported',configItem.get('NAME'), self._DEVICE_TYPE, configItem.get('MODE')) 
                 
         elif 'RASPBERRY' in self._DEVICE_TYPE:
-            self._loghandle.info('Start Raspberry GPIO interface')
-            self._hwHandle = hwIF_raspberry()
+       #     self._loghandle.info('Start Raspberry GPIO interface')
+        #    self._hwHandle = hwIF_raspberry()
             
+         #   for configItem in self._config.getSectionByRegex('Port[0-9]'): 
+          #      self._loghandle.debug('VirtualPortManager:Setup Port Number %s for Device    OFF_VALUE: OFF %s with Configuration',len(self._portInstanceList), self._DEVICE_TYPE, configItem) 
+            #     self._portInstanceList.append(S0(self._hwHandle, self._DEVICE_TYPE, configItem))
+                
+            self._RASPBERRY_REV = int(self._help.get('RASPBERRY_REV'))
+            #self._I2C_ADDRESS = int(self._help.get('I2C_ADDRESS'),16)
+            self._loghandle.info('Start Raspberry Hardware Interface')
+            self._hwHandle = hwIF_raspberry()
+           # self._hwHandle = hwIF_23017(self._RASPBERRY_REV,self._I2C_ADDRESS)
+           
             for configItem in self._config.getSectionByRegex('Port[0-9]'): 
-                self._loghandle.debug('VirtualPortManager:Setup Port Number %s for Device    OFF_VALUE: OFF %s with Configuration',len(self._portInstanceList), self._DEVICE_TYPE, configItem) 
-                self._portInstanceList.append(S0(self._hwHandle, self._DEVICE_TYPE, configItem))
+                self._loghandle.debug('VDM:Setup Port Number %s for Device %s with Configuration %s',len(self._portInstanceList), self._DEVICE_TYPE, configItem) 
+                if 'BINARY-OUT' in configItem.get('MODE'):
+                    self._portInstanceList.append(BinaryOut(self._hwHandle, self._DEVICE_TYPE, configItem))
+                elif 'BINARY-IN' in configItem.get('MODE'):
+                    self._portInstanceList.append(BinaryIn(self._hwHandle, self._DEVICE_TYPE, configItem))
+                elif 'TIMER-OUT' in configItem.get('MODE'):
+                    self._portInstanceList.append(TimerOut(self._hwHandle, self._DEVICE_TYPE, configItem))
+                elif 'TIMER-IN' in configItem.get('MODE'):
+                    self._portInstanceList.append(TimerIn(self._hwHandle, self._DEVICE_TYPE, configItem))
+                elif 'S0' in configItem.get('MODE'):
+                    self._portInstanceList.append(S0(self._hwHandle, self._DEVICE_TYPE, configItem))
+                elif 'PWM' in configItem.get('MODE'):
+                    self._portInstanceList.append(PWM(self._hwHandle, self._DEVICE_TYPE, configItem))
+                else:
+                    self._loghandle.critical('VirtualPortManager:Setup Port Number %s for Device %s Mode %s not supported',configItem.get('NAME'), self._DEVICE_TYPE, configItem.get('MODE')) 
+                
                 
         else:
             self._loghandle.crittical('VDM::Setup: Device not Supported')
@@ -214,8 +241,12 @@ class vdm(threading.Thread):
                 if instance.Update() == True or 'ALL' in mode:
                     resultList.append(self.Get_Port(instance))
                     
+            elif 'PWM' in instance.GetMode():
+                if 'ALL' in mode:
+                    resultList.append(self.Get_Port(instance))  
             else:
-                print 'unknown'
+                self._loghandle.error('VDM::Get mode unknown')
+             #   print 'unknown'
                 
  #       print "Length",len(resultList),"Content",resultList
     
@@ -262,6 +293,7 @@ class vdm(threading.Thread):
     def GetChannelName(self):
         return self._DEVICE_NAME
         
-
+    def RequestSync(self):
+        self._requestSync = True
     
              

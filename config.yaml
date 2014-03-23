@@ -71,3 +71,17 @@ Config:
     OFF_VALUE: OFF
     MODE: TIMER-OUT
     
+ Device3:
+   RASPBERRY_REV: 1
+   TYPE: RASPBERRY
+   NAME: DEVICE02
+    
+   Port24:
+    NAME: PWM324
+    HWID: 24
+    MODE: PWM
+
+   Port25:
+    NAME: PWM325
+    HWID: 25
+    MODE: PWM

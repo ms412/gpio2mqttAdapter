@@ -41,6 +41,7 @@ class hwIF_raspberry(object):
         self._loghandle = loghandle()
         self._gpio = GPIO
         self._pwm = PWM.Servo()
+        self._pwmState = False
  #       self._gpio.setmode(self._gpio.BOARD)
         self._gpio.setmode(GPIO.BCM)
         self._gpio.setwarnings(False)
@@ -78,11 +79,46 @@ class hwIF_raspberry(object):
          return True
      
     def WritePWM(self,ioPin,value):
-        value = int(value)*200
-        if value > 20000:
-            value = 19990
-        self._loghandle.info('hwIF_raspberry::WritePWM Set PWM value: %s for Port: %s',value,ioPin) 
-        self._pwm.set_servo(int(ioPin),int(value))
+        value = int(value)
+        
+       # print "wirtepwm", ioPin, value
+        
+        if value <= 3:
+            if self._pwmState == True:
+        #        print"WritePWM 3, pwmState True"
+                self._pwm.stop_servo(ioPin)
+                self.ConfigIO(ioPin,0)
+                self.WritePin(ioPin,0)
+                self._pwmState = False
+            else:
+                self.WritePin(ioPin,0)
+                
+            self._loghandle.info('hwIF_raspberry::WritePWM Stop PWM value: Low for Port: %s',ioPin)    
+        elif value >= 97:
+            if self._pwmState == True:
+                #print"WritePWM 97, pwmState True"
+                self._pwm.stop_servo(ioPin)
+                self.ConfigIO(ioPin,0)
+                self.WritePin(ioPin,1)
+                self._pwmState = False
+            else:
+                self.WritePin(ioPin,1)
+#             self._pwm.stop_servo(ioPin)
+#             self._gpio.output(ioPin, 1)
+            #value = 19900
+            #self._pwm.set_servo(ioPin,value)
+            self._loghandle.info('hwIF_raspberry::WritePWM Stop PWM value: High for Port: %s',ioPin) 
+        else:
+            if self._pwmState == False:
+                self.ConfigPWM(ioPin)
+                self._pwmState = True
+               # print"WritePWM else, pwmState True"
+                
+            self._loghandle.info('hwIF_raspberry::WritePWM Set PWM value: %s for Port: %s',value,ioPin)
+            value = value*200
+            self._pwm.set_servo(ioPin,value)
+ 
+       # self._pwm.set_servo(ioPin,value)
         
         return True
     
@@ -90,7 +126,7 @@ class hwIF_raspberry(object):
             
             
     def WritePin(self,ioPin,value):
-        self._loghandle.info('Write Pin ioPin %s, value: %s', ioPin, value)
+        self._loghandle.info('hwIF_raspberry::WritePin ioPin %s, value: %s', ioPin, value)
         self._gpio.output(ioPin, value)
         
         return True
@@ -99,6 +135,7 @@ class hwIF_raspberry(object):
     def ReadPin(self,ioPin):
         
         value = self._gpio.input(ioPin)
+        self._loghandle.info('hwIF_raspberry::ReadPin ioPin %s, value: %s', ioPin, value)
         
         return value
         

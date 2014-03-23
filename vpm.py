@@ -226,7 +226,7 @@ class BinaryIn(object):
         pinState = self._hwHandle.ReadPin(self._HWID)
         
         if  pinState != self._SavePinState:
-            print "pin", pinState, self._SavePinState
+          #  print "pin", pinState, self._SavePinState
             self._SavePinState = pinState
            # self._RestultAvailable = True
             update = True
@@ -461,7 +461,13 @@ class TimerIn(object):
 
         self._loghandle.info('BinaryOut::Get %s port %s Status %s',self._NAME, self._HWID, value) 
         
-        return {'VALUE':int(deltaT1), 'NAME':name, 'DELTA_T1': deltaT1, 'STATE':state} 
+        message=json.dumps({
+                "DELTA_T1": deltaT1,
+                "VALUE": value,
+                "RESULT": state
+        })
+        
+        return {'VALUE':message, 'NAME':name, 'DELTA_T1': deltaT1, 'STATE':state} 
   #      return True      
     
     def Update(self):
@@ -573,23 +579,24 @@ class PWM(object):
             '''
             self._hwHandle.ConfigPWM(self._HWID) 
                 
-            self._loghandle.info('BinaryOut::Init Configure Port %s HardwareID %s in Mode %s',self._NAME,self._HWID,self._MODE)
+            self._loghandle.info('VPM_PWM::Init Configure Port %s HardwareID %s in Mode %s',self._NAME,self._HWID,self._MODE)
 
         else:
-            self._loghandle.crittical('BinaryOut::Setup: Device not Supported')
+            self._loghandle.crittical('VPM_PWM::Setup: Device not Supported')
             
         return True
     
     def Set(self, value):
         
         try: 
+            self._loghandle.info('VPM_PWM::SetPWM value write PWM %s write %s',self._NAME,value) 
             self._flashFrequency = float(value)
-            self._hwHandle.WritePWM(self._HW_ID,value) 
+            self._hwHandle.WritePWM(self._HWID,value) 
             
         except ValueError:
          #   self._flashFrequency = int(2)
           #  self._t1 = time.clock()
-            self._loghandle.info('VirtualPort::SetPWM value error %s not supported',value) 
+            self._loghandle.error('VPM_PWM::SetPWM value error %s not supported',value) 
         return True
     
     def Get(self):
@@ -598,7 +605,7 @@ class PWM(object):
         VALUE: as defined in ON/OFF_VALUE
         STATE: True/False whether VALUE true or false
         '''
-        return {'VALUE':int(deltaT1), 'NAME':name, 'DELTA_T1': deltaT1, 'STATE':state}      
+        return {'VALUE':True,'NAME':self.GetName(),'STATE':True}      
     
     def Update(self):
   
@@ -667,7 +674,7 @@ class S0(object):
             self._ResultAvailable = False
             
             self._watt = 0.0
-            self._engerySum = 0.0
+            self._energySum = 0.0
             self._energyDelta = 0.0
             self._pulsCount = 0
 
@@ -701,14 +708,14 @@ class S0(object):
         
         self._loghandle.info('S0::Get Port %s Status %s',self._NAME, deltaT1) 
         
-        msg=json.dumps({
+        message=json.dumps({
                 "ENERGY": self._energySum,
                 "ENERGYDELTA": self._energyDelta,
                 "POWER": self._watt,
                 "RESULT": state
         })
         
-        return {'VALUE':msg, 'NAME':name, 'STATE':state} 
+        return {'VALUE':message, 'NAME':name, 'STATE':state} 
   #      return True      
     
     def Update(self):
@@ -743,6 +750,7 @@ class S0(object):
                 self._T0 = time.time()
                 print "T0new", self._T0
                 self.Power()
+                self.Energy()
                 self._T2 = 0
                 update = True
                 print "SavePinState", self._SavePinState
@@ -766,13 +774,14 @@ class S0(object):
         return self._watt
     
     def Energy(self):
-        energyCurr = float(self._pulsCount / self._E_FACTOR)
-        self._energyDelta = energyCurr - self._energySum
+        energyCurr = float(self._pulsCount / self._FACTOR)
+        self._energyDelta = energyCurr - self._energySum 
         self._energySum = energyCurr
  #       print self._pulsCount / self._E_FACTOR
-        print "Energy %f" % self._energy, "Pulscounte", self._pulsCount
+        print "Energy Current %f" % energyCurr, "EnergyDelata %f" % self._energyDelta, "EnergySum %f" % self._energySum, "Pulscounte", self._pulsCount
+        return True
         
-        return self._energySum
+ #       return self._energySum
     
     def GetDirection(self):
         return self._DIRECTION

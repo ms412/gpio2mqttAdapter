@@ -146,10 +146,12 @@ class Manager(daemon):
         if self._mqttThread.isAlive()== False:
             result = False
             self._loghandle.critical('Manager::ThreadMonitor Mqtt Thread no responding!')
+            self.mqtt_start()
             
         if self._vhm.ThreadMonitor() == False:
             result = False
             self._loghandle.critical('Manager::ThreadMonitor VHM Threads not responding!')
+            self.vhm_start()
 
   #     self._loghandle.debug('Manager::ThreadMonitor Threads OK: %s',result)
         return result
